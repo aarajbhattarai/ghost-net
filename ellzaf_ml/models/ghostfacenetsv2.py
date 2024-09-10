@@ -193,7 +193,7 @@ class GhostBottleneckV2(nn.Module):
 class GhostFaceNetsV2(nn.Module):
     def __init__(self, cfgs=None, image_size=256, num_classes=0, width=1.0, channels=3, dropout=0.2, block=GhostBottleneckV2,
                  add_pointwise_conv=False, bn_momentum=0.9, bn_epsilon=1e-5, init_kaiming=True, args=None, mode='classification'):
-        super(GhostFaceNetsV2, self).__init__()
+        super().__init__()
         if cfgs == None:
             self.cfgs =  [
                 # k, t, c, SE, s 
@@ -276,6 +276,20 @@ class GhostFaceNetsV2(nn.Module):
         x = self.bn1(x)
         x = self.act1(x)
         x = self.blocks(x)
+        x = self.pointwise_conv(x)
+        x = self.gdc(x)
+        if self.mode == 'recognition':
+            return x
+        else:
+            return self.classifier(x)
+        x = self.pointwise_conv(x)
+        x = self.gdc(x)
+        
+        if self.mode == 'recognition':
+            return x  # Return embedding for face recognition
+        elif self.mode == 'classification':
+            x = self.classifier(x)
+            return x  # Return classification output
         x = self.pointwise_conv(x)
         x = self.gdc(x)
         
