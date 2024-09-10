@@ -39,6 +39,7 @@ Any model that can be use in different way from the paper will be inside Experim
 6. [MixMobileNet](https://github.com/Hazqeel09/ellzaf_ml#mixmobilenet)
 
 🛠️ Tool
+7. [Face Recognition and Detection](https://github.com/Hazqeel09/ellzaf_ml#face-recognition-and-detection)
 1. [PyTorch Early Stopping](https://github.com/Hazqeel09/ellzaf_ml#-earlystopping)
 
 ## 🦾Data Augmentation
@@ -354,6 +355,47 @@ from ellzaf_ml.models import MixMobileNet
 img = torch.randn(1, 3, 224, 224)
 model = MixMobileNet(variant="S", img_size=224, num_classes=2)
 model(img)
+```
+
+### 🌟Face Recognition and Detection
+
+This project can be extended for face recognition and detection tasks. The GhostFaceNets models are particularly suitable for face recognition, while the PatchSwap augmentation can be useful for data augmentation in face-related tasks.
+
+#### Face Recognition using GhostFaceNets
+
+```python
+import torch
+from ellzaf_ml.models import GhostFaceNetsV2
+from ellzaf_ml.tools.face_recognition_utils import verify_face
+
+# Initialize the model for face recognition
+model = GhostFaceNetsV2(image_size=112, width=1, dropout=0., mode='recognition')
+model.eval()
+
+# Load two face images
+face1 = load_image('path/to/face1.jpg')
+face2 = load_image('path/to/face2.jpg')
+
+# Perform face verification
+is_match = verify_face(face1, face2, model)
+print(f"Face match: {is_match}")
+```
+
+#### Face Detection
+
+```python
+from ellzaf_ml.models.face_detection import FaceDetector
+import cv2
+
+# Initialize the face detector
+detector = FaceDetector()
+
+# Load an image and detect faces
+image = cv2.imread('path/to/image.jpg')
+faces = detector.detect_faces(image)
+detector.draw_faces(image, faces)
+cv2.imshow('Detected Faces', image)
+cv2.waitKey(0)
 ```
 
 Due to the paper does not implicitly mention their approach when image height and width is non-power-of-two.

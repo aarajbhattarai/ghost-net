@@ -192,7 +192,7 @@ class GhostBottleneckV2(nn.Module):
    
 class GhostFaceNetsV2(nn.Module):
     def __init__(self, cfgs=None, image_size=256, num_classes=0, width=1.0, channels=3, dropout=0.2, block=GhostBottleneckV2,
-                 add_pointwise_conv=False, bn_momentum=0.9, bn_epsilon=1e-5, init_kaiming=True, args=None):
+                 add_pointwise_conv=False, bn_momentum=0.9, bn_epsilon=1e-5, init_kaiming=True, args=None, mode='classification'):
         super(GhostFaceNetsV2, self).__init__()
         if cfgs == None:
             self.cfgs =  [
@@ -256,7 +256,8 @@ class GhostFaceNetsV2(nn.Module):
             pointwise_conv.append(nn.Sequential())
 
         self.pointwise_conv = nn.Sequential(*pointwise_conv)
-        self.classifier = ModifiedGDC(image_size, output_channel, num_classes, dropout)
+        self.gdc = ModifiedGDC(image_size, output_channel, output_channel, dropout)
+        self.classifier = nn.Linear(output_channel, num_classes) if num_classes > 0 else nn.Identity()
 
         # Initialize weights
         for m in self.modules():
@@ -268,11 +269,19 @@ class GhostFaceNetsV2(nn.Module):
             if isinstance(m, nn.BatchNorm2d):
                 m.momentum, m.eps = bn_momentum, bn_epsilon
 
+        self.mode = mode
+
     def forward(self, x):
         x = self.conv_stem(x)
         x = self.bn1(x)
         x = self.act1(x)
         x = self.blocks(x)
         x = self.pointwise_conv(x)
+        x = self.gdc(x)
+        
+        if self.mode == 'recognition':
+            return x  # Return embeddings for face recognition
+        
+        x = self.classifier(x)  # Apply classification layer for other tasks
         x = self.classifier(x)
         return x
